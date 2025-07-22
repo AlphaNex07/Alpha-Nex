@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Alpha Nex{% endblock %}
+
+<!-- User profile management and account settings -->
+
+{% block content %}
+<div class="row">
+    <!-- Profile Overview -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body text-center">
+                <div class="bg-black text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                     style="width: 80px; height: 80px;">
+                    <i class="fas fa-user fa-2x"></i>
+                </div>
+                <h4 class="fw-bold text-black mb-1">{{ current_user.name }}</h4>
+                <p class="text-muted mb-3">{{ current_user.email }}</p>
+                
+                <!-- Account Status -->
+                <div class="d-flex justify-content-center gap-2 mb-3">
+                    {% if current_user.kyc_verified %}
+                    <span class="badge bg-success">
+                        <i class="fas fa-check-circle me-1"></i>KYC Verified
+                    </span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark">
+                        <i class="fas fa-clock me-1"></i>KYC Pending
+                    </span>
+                    {% endif %}
+                    
+                    {% if current_user.is_banned %}
+                    <span class="badge bg-danger">
+                        <i class="fas fa-ban me-1"></i>Banned
+                    </span>
+                    {% else %}
+                    <span class="badge bg-success">
+                        <i class="fas fa-check me-1"></i>Active
+                    </span>
+                    {% endif %}
+                </div>
+                
+                <!-- XP Points Display -->
+                <div class="bg-light rounded p-3">
+                    <h2 class="fw-bold text-black mb-0">{{ current_user.xp_points }}</h2>
+                    <small class="text-muted">XP Points Available</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Strike Summary -->
+        <div class="card border-0 {% if current_user.uploader_strikes > 0 or current_user.reviewer_strikes > 0 %}bg-warning bg-opacity-10 border-warning{% else %}bg-light{% endif %}">
+            <div class="card-header bg-transparent">
+                <h6 class="fw-bold text-black mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Strike Summary
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center g-3">
+                    <div class="col-6">
+                        <div class="fw-bold text-{% if current_user.uploader_strikes >= 3 %}danger{% elif current_user.uploader_strikes > 0 %}warning{% else %}success{% endif %}">
+                            {{ current_user.uploader_strikes }}/3
+                        </div>
+                        <small class="text-muted">Uploader Strikes</small>
+                    </div>
+                    <div class="col-6">
+                        <div class="fw-bold text-{% if current_user.reviewer_strikes >= 3 %}danger{% elif current_user.reviewer_strikes > 0 %}warning{% else %}success{% endif %}">
+                            {{ current_user.reviewer_strikes }}/3
+                        </div>
+                        <small class="text-muted">Reviewer Strikes</small>
+                    </div>
+                </div>
+                {% if current_user.uploader_strikes >= 3 or current_user.reviewer_strikes >= 3 %}
+                <div class="alert alert-danger mt-3 mb-0">
+                    <small>
+                        <i class="fas fa-ban me-1"></i>
+                        Account banned due to maximum strikes reached.
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detailed Information -->
+    <div class="col-lg-8">
+        <!-- Account Statistics -->
+        <div class="row g-4 mb-4">
+            <div class="col-sm-6 col-lg-3">
+                <div class="card border-0 bg-light text-center">
+                    <div class="card-body">
+                        <i class="fas fa-cloud-upload-alt fa-2x text-black mb-2"></i>
+                        <h4 class="fw-bold text-black mb-1">{{ current_user.uploads|length }}</h4>
+                        <small class="text-muted">Total Uploads</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card border-0 bg-light text-center">
+                    <div class="card-body">
+                        <i class="fas fa-star fa-2x text-black mb-2"></i>
+                        <h4 class="fw-bold text-black mb-1">{{ current_user.reviews|length }}</h4>
+                        <small class="text-muted">Reviews Given</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card border-0 bg-light text-center">
+                    <div class="card-body">
+                        <i class="fas fa-coins fa-2x text-black mb-2"></i>
+                        <h4 class="fw-bold text-black mb-1">{{ current_user.xp_points }}</h4>
+                        <small class="text-muted">XP Points</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-lg-3">
+                <div class="card border-0 bg-light text-center">
+                    <div class="card-body">
+                        <i class="fas fa-calendar fa-2x text-black mb-2"></i>
+                        <h4 class="fw-bold text-black mb-1">{{ current_user.created_at.strftime('%b %Y') }}</h4>
+                        <small class="text-muted">Member Since</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Withdrawal Request Form -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom">
+                <h5 class="fw-bold text-black mb-0">
+                    <i class="fas fa-money-bill-wave me-2"></i>Request Withdrawal
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if current_user.xp_points >= 100 %}
+                <form method="POST" action="{{ url_for('request_withdrawal') }}">
+                    {{ withdrawal_form.hidden_tag() if withdrawal_form }}
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">XP Amount</label>
+                            <input type="number" class="form-control" name="amount_xp" min="100" max="{{ current_user.xp_points }}" placeholder="Min: 100 XP">
+                            <small class="text-muted">Available: {{ current_user.xp_points }} XP</small>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">Payment Method</label>
+                            <select class="form-select" name="payment_method" required>
+                                <option value="">Select method...</option>
+                                <option value="paypal">PayPal</option>
+                                <option value="bank">Bank Transfer</option>
+                                <option value="crypto">Cryptocurrency</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button type="submit" class="btn btn-dark w-100">
+                                <i class="fas fa-paper-plane me-2"></i>Request
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label class="form-label fw-medium">Payment Details</label>
+                        <textarea class="form-control" name="payment_details" rows="2" placeholder="Enter your payment details (email, account number, wallet address, etc.)"></textarea>
+                    </div>
+                </form>
+                {% else %}
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Minimum withdrawal amount is 100 XP. You currently have {{ current_user.xp_points }} XP.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Strike History -->
+        {% if strikes %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom">
+                <h5 class="fw-bold text-black mb-0">
+                    <i class="fas fa-history me-2"></i>Violation History
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="border-0 fw-medium">Type</th>
+                                <th class="border-0 fw-medium">Reason</th>
+                                <th class="border-0 fw-medium">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for strike in strikes %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-{% if strike.strike_type == 'uploader' %}warning{% else %}info{% endif %}">
+                                        <i class="fas fa-{% if strike.strike_type == 'uploader' %}cloud-upload-alt{% else %}star{% endif %} me-1"></i>
+                                        {{ strike.strike_type.title() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="text-muted">{{ strike.reason }}</span>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ strike.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Withdrawal History -->
+        {% if withdrawals %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom">
+                <h5 class="fw-bold text-black mb-0">
+                    <i class="fas fa-receipt me-2"></i>Withdrawal History
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="border-0 fw-medium">Amount</th>
+                                <th class="border-0 fw-medium">Method</th>
+                                <th class="border-0 fw-medium">Status</th>
+                                <th class="border-0 fw-medium">Date</th>
+                                <th class="border-0 fw-medium">Processed</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for withdrawal in withdrawals %}
+                            <tr>
+                                <td>
+                                    <div class="fw-medium">{{ withdrawal.amount_xp }} XP</div>
+                                    <small class="text-muted">${{ "%.2f"|format(withdrawal.amount_usd) }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark">{{ withdrawal.payment_method.title() }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{% if withdrawal.status == 'approved' %}success{% elif withdrawal.status == 'rejected' %}danger{% else %}warning{% endif %}">
+                                        {{ withdrawal.status.title() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ withdrawal.created_at.strftime('%Y-%m-%d') }}</small>
+                                </td>
+                                <td>
+                                    {% if withdrawal.processed_at %}
+                                    <small class="text-muted">{{ withdrawal.processed_at.strftime('%Y-%m-%d') }}</small>
+                                    {% else %}
+                                    <small class="text-muted">-</small>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// XP to USD conversion calculator
+document.querySelector('input[name="amount_xp"]').addEventListener('input', function() {
+    const xpAmount = parseInt(this.value) || 0;
+    const usdAmount = (xpAmount / 100).toFixed(2);
+    
+    // Update display or show conversion info
+    const existingInfo = document.querySelector('.xp-conversion-info');
+    if (existingInfo) {
+        existingInfo.remove();
+    }
+    
+    if (xpAmount >= 100) {
+        const info = document.createElement('small');
+        info.className = 'text-muted xp-conversion-info';
+        info.textContent = `≈ $${usdAmount} USD (estimated)`;
+        this.parentNode.appendChild(info);
+    }
+});
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const xpAmount = parseInt(document.querySelector('input[name="amount_xp"]').value) || 0;
+    const paymentMethod = document.querySelector('select[name="payment_method"]').value;
+    const paymentDetails = document.querySelector('textarea[name="payment_details"]').value.trim();
+    
+    if (xpAmount < 100) {
+        e.preventDefault();
+        alert('Minimum withdrawal amount is 100 XP.');
+        return;
+    }
+    
+    if (xpAmount > {{ current_user.xp_points }}) {
+        e.preventDefault();
+        alert('Insufficient XP points available.');
+        return;
+    }
+    
+    if (!paymentMethod) {
+        e.preventDefault();
+        alert('Please select a payment method.');
+        return;
+    }
+    
+    if (!paymentDetails) {
+        e.preventDefault();
+        alert('Please provide payment details.');
+        return;
+    }
+    
+    return confirm(`Request withdrawal of ${xpAmount} XP (≈ $${(xpAmount/100).toFixed(2)}) via ${paymentMethod}?`);
+});
+</script>
+{% endblock %}

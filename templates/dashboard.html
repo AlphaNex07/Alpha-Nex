@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Alpha Nex{% endblock %}
+
+<!-- Main user dashboard with activity overview and navigation -->
+
+{% block content %}
+<!-- Dashboard Header -->
+<div class="row mb-4">
+    <div class="col">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold text-black mb-1">
+                    <i class="fas fa-user-circle me-2"></i>Welcome back, {{ current_user.name }}!
+                </h2>
+                <p class="text-muted mb-0">
+                    <i class="fas fa-check-circle text-success me-1"></i>
+                    Account active and ready to earn XP points
+                </p>
+            </div>
+            <div class="text-end">
+                <h3 class="fw-bold text-black mb-0">{{ current_user.xp_points }} XP</h3>
+                <small class="text-muted">Total Points</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Strike Warnings (Horizontal Layout) -->
+{% if current_user.uploader_strikes > 0 or current_user.reviewer_strikes > 0 %}
+<div class="alert alert-warning border-0 mb-4">
+    <div class="d-flex align-items-center">
+        <i class="fas fa-exclamation-triangle fa-lg me-3"></i>
+        <div class="flex-grow-1">
+            <h6 class="fw-bold mb-1">Strike Warning</h6>
+            <div class="d-flex gap-4">
+                {% if current_user.uploader_strikes > 0 %}
+                <span>
+                    <strong>Uploader:</strong> {{ current_user.uploader_strikes }}/3 strikes
+                    {% if current_user.uploader_strikes >= 3 %}
+                    <span class="badge bg-danger ms-1">BANNED</span>
+                    {% endif %}
+                </span>
+                {% endif %}
+                {% if current_user.reviewer_strikes > 0 %}
+                <span>
+                    <strong>Reviewer:</strong> {{ current_user.reviewer_strikes }}/3 strikes
+                    {% if current_user.reviewer_strikes >= 3 %}
+                    <span class="badge bg-danger ms-1">BANNED</span>
+                    {% endif %}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        <a href="{{ url_for('profile') }}" class="btn btn-sm btn-outline-dark">
+            <i class="fas fa-eye me-1"></i>View Details
+        </a>
+    </div>
+</div>
+{% endif %}
+
+<!-- Stats Cards (Horizontal Layout) -->
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 bg-light h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="bg-black text-white rounded p-3 me-3">
+                    <i class="fas fa-cloud-upload-alt fa-lg"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold text-black mb-0">{{ upload_count }}</h4>
+                    <small class="text-muted">Total Uploads</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 bg-light h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="bg-black text-white rounded p-3 me-3">
+                    <i class="fas fa-star fa-lg"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold text-black mb-0">{{ review_count }}</h4>
+                    <small class="text-muted">Reviews Given</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 bg-light h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="bg-black text-white rounded p-3 me-3">
+                    <i class="fas fa-hdd fa-lg"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold text-black mb-0">{{ "%.1f"|format(daily_remaining_mb) }}</h4>
+                    <small class="text-muted">MB Remaining Today</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 bg-light h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="bg-{% if current_user.is_banned %}danger{% else %}success{% endif %} text-white rounded p-3 me-3">
+                    <i class="fas fa-{% if current_user.is_banned %}ban{% else %}check-circle{% endif %} fa-lg"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold text-black mb-0">
+                        {% if current_user.is_banned %}Banned{% else %}Active{% endif %}
+                    </h5>
+                    <small class="text-muted">Account Status</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Role Selection Cards (Horizontal Layout) -->
+<div class="row mb-4">
+    <div class="col">
+        <h4 class="fw-bold text-black mb-3">Choose Your Activity</h4>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Upload Card -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100 {% if current_user.is_banned %}opacity-50{% endif %}">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="bg-black text-white rounded p-3">
+                        <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                    </div>
+                    <span class="badge bg-success">+20 XP</span>
+                </div>
+                
+                <h5 class="fw-bold text-black mb-2">Content Uploader</h5>
+                <p class="text-muted mb-3">
+                    Upload videos, audio, documents, code, or text content. Earn XP for quality submissions.
+                </p>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <small class="text-muted">Daily Upload Limit:</small>
+                    <div class="progress flex-grow-1 ms-2" style="height: 6px;">
+                        <div class="progress-bar bg-dark" style="width: {{ ((500 - daily_remaining_mb) / 500 * 100)|round }}%"></div>
+                    </div>
+                    <small class="text-muted ms-2">{{ "%.0f"|format(500 - daily_remaining_mb) }}/500 MB</small>
+                </div>
+                
+                {% if not current_user.is_banned %}
+                <a href="{{ url_for('upload_file') }}" class="btn btn-dark w-100">
+                    <i class="fas fa-upload me-2"></i>Start Uploading
+                </a>
+                {% else %}
+                <button class="btn btn-secondary w-100" disabled>
+                    <i class="fas fa-ban me-2"></i>Account Banned
+                </button>
+                {% endif %}
+                
+                <!-- Strike indicator -->
+                {% if current_user.uploader_strikes > 0 %}
+                <div class="alert alert-warning mt-2 mb-0 py-2">
+                    <small>
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        <strong>{{ current_user.uploader_strikes }}/3 strikes</strong> - 
+                        {% if current_user.uploader_strikes >= 3 %}Banned from uploading{% else %}Be careful with content quality{% endif %}
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Review Card -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100 {% if current_user.is_banned %}opacity-50{% endif %}">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="bg-black text-white rounded p-3">
+                        <i class="fas fa-star fa-2x"></i>
+                    </div>
+                    <span class="badge bg-success">+10 XP</span>
+                </div>
+                
+                <h5 class="fw-bold text-black mb-2">Website Reviewer</h5>
+                <p class="text-muted mb-3">
+                    Review and rate our platform! Share your feedback about the website, features, and user experience.
+                </p>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <small class="text-muted">Help Us Improve:</small>
+                    <div class="d-flex gap-1">
+                        {% for i in range(5) %}
+                        <i class="fas fa-heart {% if i < 4 %}text-danger{% else %}text-muted{% endif %}"></i>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                {% if not current_user.is_banned %}
+                <a href="{{ url_for('review_content') }}" class="btn btn-dark w-100">
+                    <i class="fas fa-comment-dots me-2"></i>Rate Our Website
+                </a>
+                {% else %}
+                <button class="btn btn-secondary w-100" disabled>
+                    <i class="fas fa-ban me-2"></i>Account Banned
+                </button>
+                {% endif %}
+                
+                <!-- Strike indicator -->
+                {% if current_user.reviewer_strikes > 0 %}
+                <div class="alert alert-warning mt-2 mb-0 py-2">
+                    <small>
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        <strong>{{ current_user.reviewer_strikes }}/3 strikes</strong> - 
+                        {% if current_user.reviewer_strikes >= 3 %}Banned from reviewing{% else %}Improve review quality{% endif %}
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Uploads (Horizontal Table Layout) -->
+{% if recent_uploads %}
+<div class="row">
+    <div class="col">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom">
+                <h5 class="fw-bold text-black mb-0">
+                    <i class="fas fa-clock me-2"></i>Recent Uploads
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="border-0 fw-medium">File</th>
+                                <th class="border-0 fw-medium">Category</th>
+                                <th class="border-0 fw-medium">Status</th>
+                                <th class="border-0 fw-medium">Uploaded</th>
+                                <th class="border-0 fw-medium">Deletion Window</th>
+                                <th class="border-0 fw-medium">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for upload in recent_uploads %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-file-alt text-muted me-2"></i>
+                                        <div>
+                                            <div class="fw-medium">{{ upload.original_filename }}</div>
+                                            <small class="text-muted">{{ "%.1f"|format(upload.file_size / 1024 / 1024) }} MB</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark">{{ upload.category.title() }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{% if upload.status == 'approved' %}success{% elif upload.status == 'rejected' %}danger{% else %}warning{% endif %}">
+                                        {{ upload.status.title() }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ upload.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                </td>
+                                <td>
+                                    {% if upload.can_delete_free() %}
+                                    <small class="text-success">
+                                        <i class="fas fa-check-circle me-1"></i>Free deletion
+                                    </small>
+                                    {% else %}
+                                    <small class="text-warning">
+                                        <i class="fas fa-coins me-1"></i>{{ upload.get_deletion_penalty() }} XP penalty
+                                    </small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-sm btn-outline-dark" onclick="updateStatus({{ upload.id }})">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </button>
+                                        <a href="{{ url_for('delete_upload', upload_id=upload.id) }}" 
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Are you sure? {% if not upload.can_delete_free() %}This will cost {{ upload.get_deletion_penalty() }} XP.{% endif %}')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateStatus(uploadId) {
+    fetch(`/api/upload_status/${uploadId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to update status');
+        });
+}
+
+// Auto-refresh upload statuses every 30 seconds
+setInterval(function() {
+    location.reload();
+}, 30000);
+</script>
+{% endblock %}

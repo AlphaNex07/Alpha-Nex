@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - Alpha Nex{% endblock %}
+
+{% block content %}
+<!-- Admin Header -->
+<div class="row mb-4">
+    <div class="col">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold text-black mb-1">
+                    <i class="fas fa-shield-alt me-2"></i>Admin Dashboard
+                </h2>
+                <p class="text-muted mb-0">Manage users, content, and platform violations</p>
+            </div>
+            <div class="text-end">
+                <span class="badge bg-dark fs-6">Administrator</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats (Horizontal Layout) -->
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 bg-light h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="bg-success text-white rounded p-3 me-3">
+                    <i class="fas fa-users fa-lg"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold text-black mb-0">{{ total_users }}</h4>
+                    <small class="text-muted">Total Users</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 bg-light h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="bg-info text-white rounded p-3 me-3">
+                    <i class="fas fa-money-bill-wave fa-lg"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold text-black mb-0">{{ pending_withdrawals }}</h4>
+                    <small class="text-muted">Pending Withdrawals</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 bg-light h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="bg-danger text-white rounded p-3 me-3">
+                    <i class="fas fa-flag fa-lg"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold text-black mb-0">{{ flagged_content }}</h4>
+                    <small class="text-muted">Flagged Content</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-0 bg-light h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="bg-black text-white rounded p-3 me-3">
+                    <i class="fas fa-exclamation-triangle fa-lg"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold text-black mb-0">{{ recent_strikes|length }}</h4>
+                    <small class="text-muted">Recent Strikes</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Action Cards (Horizontal Layout) -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="bg-warning text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                     style="width: 60px; height: 60px;">
+                    <i class="fas fa-id-card fa-lg"></i>
+                </div>
+                <h5 class="fw-bold text-black mb-2">KYC Management</h5>
+                <p class="text-muted mb-3">Review and approve user verification documents</p>
+                <div class="d-flex justify-content-center gap-2 mb-3">
+                    <span class="badge bg-warning">{{ pending_kyc }} Pending</span>
+                </div>
+                <a href="#" class="btn btn-dark w-100" onclick="alert('KYC management interface would be implemented here')">
+                    <i class="fas fa-check-circle me-2"></i>Review KYC
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="bg-info text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                     style="width: 60px; height: 60px;">
+                    <i class="fas fa-money-bill-wave fa-lg"></i>
+                </div>
+                <h5 class="fw-bold text-black mb-2">Withdrawal Requests</h5>
+                <p class="text-muted mb-3">Process payout requests from users</p>
+                <div class="d-flex justify-content-center gap-2 mb-3">
+                    <span class="badge bg-info">{{ pending_withdrawals }} Pending</span>
+                </div>
+                <a href="#" class="btn btn-dark w-100" onclick="alert('Withdrawal management interface would be implemented here')">
+                    <i class="fas fa-dollar-sign me-2"></i>Process Payouts
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="bg-danger text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                     style="width: 60px; height: 60px;">
+                    <i class="fas fa-flag fa-lg"></i>
+                </div>
+                <h5 class="fw-bold text-black mb-2">Content Moderation</h5>
+                <p class="text-muted mb-3">Review flagged content and violations</p>
+                <div class="d-flex justify-content-center gap-2 mb-3">
+                    <span class="badge bg-danger">{{ flagged_content }} Flagged</span>
+                </div>
+                <a href="#" class="btn btn-dark w-100" onclick="alert('Content moderation interface would be implemented here')">
+                    <i class="fas fa-eye me-2"></i>Review Content
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Violations Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold text-black mb-0">
+                <i class="fas fa-history me-2"></i>Recent Strike Activity
+            </h5>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-dark" onclick="location.reload()">
+                    <i class="fas fa-sync-alt me-1"></i>Refresh
+                </button>
+                <button class="btn btn-sm btn-dark" onclick="alert('Export functionality would be implemented here')">
+                    <i class="fas fa-download me-1"></i>Export
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if recent_strikes %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="border-0 fw-medium">User</th>
+                        <th class="border-0 fw-medium">Strike Type</th>
+                        <th class="border-0 fw-medium">Reason</th>
+                        <th class="border-0 fw-medium">Date</th>
+                        <th class="border-0 fw-medium">Status</th>
+                        <th class="border-0 fw-medium">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for strike in recent_strikes %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                     style="width: 32px; height: 32px; min-width: 32px;">
+                                    <i class="fas fa-user fa-sm"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-medium">{{ strike.user.name }}</div>
+                                    <small class="text-muted">{{ strike.user.email }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-{% if strike.strike_type == 'uploader' %}warning{% else %}info{% endif %}">
+                                <i class="fas fa-{% if strike.strike_type == 'uploader' %}cloud-upload-alt{% else %}star{% endif %} me-1"></i>
+                                {{ strike.strike_type.title() }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="text-muted">{{ strike.reason[:50] }}{% if strike.reason|length > 50 %}...{% endif %}</span>
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ strike.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </td>
+                        <td>
+                            {% if strike.user.is_banned %}
+                            <span class="badge bg-danger">
+                                <i class="fas fa-ban me-1"></i>Banned
+                            </span>
+                            {% else %}
+                            {% set total_strikes = strike.user.uploader_strikes + strike.user.reviewer_strikes %}
+                            <span class="badge bg-{% if total_strikes >= 3 %}danger{% elif total_strikes >= 2 %}warning{% else %}success{% endif %}">
+                                {{ total_strikes }}/3 Strikes
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-sm btn-outline-dark" 
+                                        onclick="viewUserDetails('{{ strike.user.id }}')" 
+                                        title="View User">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                {% if not strike.user.is_banned %}
+                                <button class="btn btn-sm btn-outline-danger" 
+                                        onclick="confirmBanUser('{{ strike.user.id }}')" 
+                                        title="Ban User">
+                                    <i class="fas fa-ban"></i>
+                                </button>
+                                {% else %}
+                                <button class="btn btn-sm btn-outline-success" 
+                                        onclick="confirmUnbanUser('{{ strike.user.id }}')" 
+                                        title="Unban User">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+            <h5 class="fw-bold text-black mb-2">No Recent Violations</h5>
+            <p class="text-muted mb-0">All users are currently in good standing.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Platform Statistics (Horizontal Cards) -->
+<div class="row g-4 mt-4">
+    <div class="col-md-6">
+        <div class="card border-0 bg-light">
+            <div class="card-header bg-transparent">
+                <h6 class="fw-bold text-black mb-0">
+                    <i class="fas fa-chart-bar me-2"></i>User Statistics
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center g-3">
+                    <div class="col-4">
+                        <div class="fw-bold text-black">Loading...</div>
+                        <small class="text-muted">Total Users</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="fw-bold text-black">Loading...</div>
+                        <small class="text-muted">Active Today</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="fw-bold text-black">Loading...</div>
+                        <small class="text-muted">Banned Users</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card border-0 bg-light">
+            <div class="card-header bg-transparent">
+                <h6 class="fw-bold text-black mb-0">
+                    <i class="fas fa-file-alt me-2"></i>Content Statistics
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center g-3">
+                    <div class="col-4">
+                        <div class="fw-bold text-black">Loading...</div>
+                        <small class="text-muted">Total Uploads</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="fw-bold text-black">Loading...</div>
+                        <small class="text-muted">Pending Review</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="fw-bold text-black">Loading...</div>
+                        <small class="text-muted">Reviews Given</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Admin action functions
+function viewUserDetails(userId) {
+    alert(`User details view would be implemented here for user ID: ${userId}`);
+}
+
+function confirmBanUser(userId) {
+    if (confirm('Are you sure you want to ban this user? This action will prevent them from uploading content or submitting reviews.')) {
+        // In a real implementation, this would make an API call
+        alert(`Ban user functionality would be implemented here for user ID: ${userId}`);
+    }
+}
+
+function confirmUnbanUser(userId) {
+    if (confirm('Are you sure you want to unban this user? This will restore their upload and review privileges.')) {
+        // In a real implementation, this would make an API call
+        alert(`Unban user functionality would be implemented here for user ID: ${userId}`);
+    }
+}
+
+// Load platform statistics
+function loadPlatformStats() {
+    // In a real implementation, these would be API calls
+    setTimeout(() => {
+        // Update user stats
+        const userStats = document.querySelectorAll('.card:nth-child(1) .fw-bold');
+        if (userStats.length >= 3) {
+            userStats[0].textContent = 'N/A';
+            userStats[1].textContent = 'N/A';
+            userStats[2].textContent = 'N/A';
+        }
+        
+        // Update content stats
+        const contentStats = document.querySelectorAll('.card:nth-child(2) .fw-bold');
+        if (contentStats.length >= 3) {
+            contentStats[0].textContent = 'N/A';
+            contentStats[1].textContent = 'N/A';
+            contentStats[2].textContent = 'N/A';
+        }
+    }, 1000);
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadPlatformStats();
+    
+    // Auto-refresh every 5 minutes
+    setInterval(() => {
+        location.reload();
+    }, 300000);
+});
+
+// Keyboard shortcuts for admin
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey || e.metaKey) {
+        switch(e.key) {
+            case 'r':
+                e.preventDefault();
+                location.reload();
+                break;
+            case 'k':
+                e.preventDefault();
+                alert('KYC management shortcut - would open KYC interface');
+                break;
+            case 'w':
+                e.preventDefault();
+                alert('Withdrawal management shortcut - would open withdrawal interface');
+                break;
+        }
+    }
+});
+</script>
+{% endblock %}

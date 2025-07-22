@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - Alpha Nex{% endblock %}
+
+<!-- User registration and account creation page -->
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <i class="fas fa-cube fa-2x text-black mb-2"></i>
+                    <h3 class="fw-bold text-black">Join Alpha Nex</h3>
+                    <p class="text-muted">Create your account and start earning XP points</p>
+                </div>
+                
+                <form method="POST" action="{{ url_for('signup') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label fw-medium") }}
+                        {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+                        {% for error in form.name.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label fw-medium") }}
+                        {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
+                        {% for error in form.email.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label fw-medium") }}
+                        {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), 
+                                       placeholder="Minimum 8 characters") }}
+                        {% for error in form.password.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        {{ form.confirm_password.label(class="form-label fw-medium") }}
+                        {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else "")) }}
+                        {% for error in form.confirm_password.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-dark btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>Create Account
+                        </button>
+                    </div>
+                </form>
+                
+                <hr class="my-4">
+                
+                <div class="text-center">
+                    <p class="mb-0">
+                        Already have an account? 
+                        <a href="{{ url_for('login') }}" class="text-decoration-none fw-medium">Sign In</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Next Steps Info -->
+        <div class="card border-0 bg-light mt-3">
+            <div class="card-body p-3">
+                <h6 class="fw-bold text-black mb-2">
+                    <i class="fas fa-info-circle me-2"></i>Next Steps After Registration
+                </h6>
+                <ul class="mb-0 small text-muted">
+                    <li>Complete email verification</li>
+                    <li>Upload KYC documents (passport/license + selfie)</li>
+                    <li>Start uploading content or reviewing submissions</li>
+                    <li>Earn XP points for future rewards</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Content - Alpha Nex{% endblock %}
+
+<!-- File upload interface for content submission -->
+
+{% block content %}
+<div class="row">
+    <!-- Upload Form -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom">
+                <h4 class="fw-bold text-black mb-0">
+                    <i class="fas fa-cloud-upload-alt me-2"></i>Upload Content
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- File Upload Zone -->
+                    <div class="mb-4">
+                        {{ form.file.label(class="form-label fw-medium") }}
+                        <div class="border-2 border-dashed rounded p-4 text-center" id="dropZone">
+                            {{ form.file(class="form-control d-none", id="fileInput") }}
+                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                            <h5 class="text-black">Drag & Drop Files Here</h5>
+                            <p class="text-muted mb-3">or <button type="button" class="btn btn-link p-0" onclick="document.getElementById('fileInput').click()">browse files</button></p>
+                            <small class="text-muted">
+                                Supported formats: PDF, MP4, MP3, WAV, TXT, Code files, Images<br>
+                                Maximum file size: 500MB
+                            </small>
+                            <div id="fileInfo" class="mt-3 d-none">
+                                <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-file text-primary me-2"></i>
+                                        <span id="fileName" class="fw-medium"></span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span id="fileSize" class="text-muted small"></span>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearFile()">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% for error in form.file.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Category Selection (Horizontal Layout) -->
+                    <div class="mb-4">
+                        {{ form.category.label(class="form-label fw-medium") }}
+                        <div class="row g-2">
+                            {% for value, label in form.category.choices %}
+                            <div class="col-md-4 col-sm-6">
+                                <input type="radio" class="btn-check" name="category" id="cat_{{ value }}" value="{{ value }}" autocomplete="off">
+                                <label class="btn btn-outline-dark w-100" for="cat_{{ value }}">
+                                    <i class="fas fa-{% if value == 'video' %}video{% elif value == 'audio' %}music{% elif value == 'document' %}file-pdf{% elif value == 'code' %}code{% elif value == 'text' %}file-alt{% else %}image{% endif %} me-2"></i>
+                                    {{ label }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% for error in form.category.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="mb-4">
+                        {{ form.description.label(class="form-label fw-medium") }}
+                        {{ form.description(class="form-control", rows="4", placeholder="Provide a detailed description of your content. Include what it contains, its purpose, and any relevant details that would help reviewers understand its value.") }}
+                        <div class="form-text d-flex justify-content-between">
+                            <span>Minimum 10 characters required</span>
+                            <span id="descriptionCount">0/1000</span>
+                        </div>
+                        {% for error in form.description.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- AI Consent Checkbox -->
+                    <div class="mb-4">
+                        <div class="card bg-light border-0">
+                            <div class="card-body p-3">
+                                <div class="form-check">
+                                    {{ form.ai_consent(class="form-check-input") }}
+                                    <label class="form-check-label fw-medium" for="ai_consent">
+                                        {{ form.ai_consent.label.text }}
+                                    </label>
+                                </div>
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    By checking this box, you confirm ownership of the content and agree to AI training usage as described in our terms.
+                                </small>
+                                {% for error in form.ai_consent.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-dark btn-lg" id="submitBtn" disabled>
+                            <i class="fas fa-upload me-2"></i>Upload Content
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Upload Info Sidebar -->
+    <div class="col-lg-4">
+        <!-- Daily Limit -->
+        <div class="card border-0 bg-light mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold text-black mb-0">Daily Upload Limit</h6>
+                    <i class="fas fa-hdd text-muted"></i>
+                </div>
+                <div class="progress mb-2" style="height: 8px;">
+                    <div class="progress-bar bg-dark" style="width: {{ ((500 - daily_remaining_mb) / 500 * 100)|round }}%"></div>
+                </div>
+                <div class="d-flex justify-content-between small text-muted">
+                    <span>{{ "%.1f"|format(500 - daily_remaining_mb) }} MB used</span>
+                    <span>{{ "%.1f"|format(daily_remaining_mb) }} MB remaining</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Upload Guidelines -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h6 class="fw-bold text-black mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>Upload Guidelines
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        <small>Ensure content is original and high-quality</small>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        <small>Provide detailed, accurate descriptions</small>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        <small>Choose the correct category</small>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-times text-danger me-2"></i>
+                        <small>No copyrighted or inappropriate content</small>
+                    </li>
+                    <li class="mb-0">
+                        <i class="fas fa-times text-danger me-2"></i>
+                        <small>No duplicate or spam submissions</small>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Deletion Policy -->
+        <div class="card border-0 bg-warning bg-opacity-10 border-warning">
+            <div class="card-body">
+                <h6 class="fw-bold text-black mb-2">
+                    <i class="fas fa-clock me-2"></i>48-Hour Deletion Window
+                </h6>
+                <p class="small text-muted mb-2">
+                    You can delete uploaded content for free within 48 hours. After this period, deletion will incur an XP penalty.
+                </p>
+                <div class="d-flex justify-content-between small">
+                    <span class="text-success">
+                        <i class="fas fa-check-circle me-1"></i>0-48 hours: Free
+                    </span>
+                    <span class="text-warning">
+                        <i class="fas fa-coins me-1"></i>After 48h: XP penalty
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Strike Warning -->
+        {% if current_user.uploader_strikes > 0 %}
+        <div class="card border-0 bg-danger bg-opacity-10 border-danger">
+            <div class="card-body">
+                <h6 class="fw-bold text-danger mb-2">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Strike Warning
+                </h6>
+                <p class="small text-muted mb-2">
+                    You have <strong>{{ current_user.uploader_strikes }}/3 strikes</strong> for upload violations.
+                </p>
+                <small class="text-danger">
+                    {% if current_user.uploader_strikes >= 3 %}
+                    Your upload privileges have been revoked.
+                    {% else %}
+                    {{ 3 - current_user.uploader_strikes }} more strikes will result in upload ban.
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// File upload handling
+const fileInput = document.getElementById('fileInput');
+const dropZone = document.getElementById('dropZone');
+const fileInfo = document.getElementById('fileInfo');
+const fileName = document.getElementById('fileName');
+const fileSize = document.getElementById('fileSize');
+const submitBtn = document.getElementById('submitBtn');
+const descriptionTextarea = document.querySelector('textarea[name="description"]');
+const descriptionCount = document.getElementById('descriptionCount');
+
+// Description character counter
+descriptionTextarea.addEventListener('input', function() {
+    const count = this.value.length;
+    descriptionCount.textContent = `${count}/1000`;
+    validateForm();
+});
+
+// File input change
+fileInput.addEventListener('change', handleFileSelect);
+
+// Drag and drop
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('border-primary');
+});
+
+dropZone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('border-primary');
+});
+
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('border-primary');
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        fileInput.files = files;
+        handleFileSelect();
+    }
+});
+
+function handleFileSelect() {
+    const file = fileInput.files[0];
+    if (file) {
+        fileName.textContent = file.name;
+        fileSize.textContent = formatFileSize(file.size);
+        fileInfo.classList.remove('d-none');
+        
+        // Check file size against daily limit
+        const fileSizeMB = file.size / 1024 / 1024;
+        const remainingMB = {{ daily_remaining_mb }};
+        
+        if (fileSizeMB > remainingMB) {
+            alert(`File size (${fileSizeMB.toFixed(1)} MB) exceeds your daily limit (${remainingMB.toFixed(1)} MB remaining).`);
+            clearFile();
+            return;
+        }
+        
+        validateForm();
+    }
+}
+
+function clearFile() {
+    fileInput.value = '';
+    fileInfo.classList.add('d-none');
+    validateForm();
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+function validateForm() {
+    const hasFile = fileInput.files.length > 0;
+    const hasDescription = descriptionTextarea.value.trim().length >= 10;
+    const hasCategory = document.querySelector('input[name="category"]:checked');
+    const hasConsent = document.getElementById('ai_consent').checked;
+    
+    submitBtn.disabled = !(hasFile && hasDescription && hasCategory && hasConsent);
+}
+
+// Category selection validation
+document.querySelectorAll('input[name="category"]').forEach(radio => {
+    radio.addEventListener('change', validateForm);
+});
+
+// Consent checkbox validation
+document.getElementById('ai_consent').addEventListener('change', validateForm);
+
+// Initial validation
+validateForm();
+</script>
+{% endblock %}
