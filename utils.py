@@ -13,7 +13,10 @@ ALLOWED_EXTENSIONS = {
 }
 
 def allowed_file(filename):
-    """Check if file extension is allowed."""
+    """
+    Check if file extension is allowed for upload.
+    Supports multiple categories: video, audio, documents, code, images.
+    """
     if not filename:
         return False
     
@@ -33,7 +36,10 @@ def get_file_size(file):
     return size
 
 def calculate_xp_reward(action_type):
-    """Calculate XP reward for different actions."""
+    """
+    Calculate XP reward for different user actions.
+    Supports: upload, review, quality_bonus, daily_login.
+    """
     rewards = {
         'upload': 20,
         'review': 10,

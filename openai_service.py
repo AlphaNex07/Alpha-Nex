@@ -13,7 +13,13 @@ openai_client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 def detect_duplicate_content(file_path, description):
     """
     Analyze content for potential duplicates and spam using AI.
-    Returns tuple of (duplicate_score, spam_score) both 0.0-1.0
+    
+    Args:
+        file_path (str): Path to the uploaded file
+        description (str): User-provided content description
+        
+    Returns:
+        tuple: (duplicate_score, spam_score) both float values 0.0-1.0
     """
     if not openai_client:
         # Return default scores if OpenAI is not available

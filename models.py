@@ -62,6 +62,10 @@ class User(UserMixin, db.Model):
         db.session.commit()
 
 class Upload(db.Model):
+    """
+    Upload model for storing file submissions and metadata.
+    Tracks file information, AI analysis results, and review status.
+    """
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     filename = db.Column(db.String(255), nullable=False)
@@ -104,6 +108,10 @@ class Upload(db.Model):
         return min(int(hours_late * 5), 100)  # Max 100 XP penalty
 
 class Review(db.Model):
+    """
+    Review model for storing user feedback and ratings.
+    Now used for website feedback instead of content reviews.
+    """
     id = db.Column(db.Integer, primary_key=True)
     upload_id = db.Column(db.Integer, db.ForeignKey('upload.id'), nullable=False)
     reviewer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

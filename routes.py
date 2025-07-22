@@ -16,12 +16,12 @@ from openai_service import detect_duplicate_content, check_content_quality
 
 @app.route('/')
 def index():
-    """Landing page for Alpha Nex platform"""
+    """Homepage route - displays platform overview and features."""
     return render_template('index.html')
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    """User registration endpoint"""
+    """User registration endpoint with form validation and account creation."""
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     
@@ -45,6 +45,7 @@ def signup():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """User authentication endpoint with session management."""
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     

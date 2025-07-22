@@ -15,6 +15,7 @@ logging.basicConfig(
 )
 
 class Base(DeclarativeBase):
+    """Base class for SQLAlchemy ORM models."""
     pass
 
 db = SQLAlchemy(model_class=Base)

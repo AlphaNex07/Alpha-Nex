@@ -8,7 +8,7 @@ from models import User
 # Includes user registration, login, content upload, and review forms
 
 class SignupForm(FlaskForm):
-    """User registration form with validation"""
+    """User registration form with validation."""
     name = StringField('Full Name', validators=[DataRequired(), Length(min=2, max=100)])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=8)])
@@ -20,6 +20,7 @@ class SignupForm(FlaskForm):
             raise ValidationError('Email already registered.')
 
 class LoginForm(FlaskForm):
+    """User authentication login form."""
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
 
